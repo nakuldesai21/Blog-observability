@@ -1,0 +1,61 @@
+version: '3.8'
+services:
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+    restart: unless-stopped
+    network_mode: "host"   # 👈 Use host network to allow access to Flask running on the host
+
+   # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - "./grafana:/var/lib/grafana"
+    user: "472" # Grafana user ID
+    command: >
+      sh -c "
+      mkdir -p /var/lib/grafana &&
+      chown -R 472:472 /var/lib/grafana &&
+      chmod -R 775 /var/lib/grafana &&
+      /run.sh"
+    restart: unless-stopped
+    network_mode: "host"
+
+
+# #if application is running in container
+# version: '3.8'
+# services:
+#   # Flask Application
+#   flask-app:
+#     build: .
+#     container_name: flask-app
+#     ports:
+#       - "5000:5000"
+#     restart: unless-stopped
+#     environment:
+#       - FLASK_APP=app.py
+#     networks:
+#       - monitoring
+
+#   # Prometheus
+#   prometheus:
+#     image: prom/prometheus:latest 
+#     container_name: prometheus
+#     ports:
+#       - "9090:9090"
+#     volumes:
+#       - "./prometheus.yml:/etc/prometheus/prometheus.yml" 
+#     restart: unless-stopped
+#     networks:
+#       - monitoring
+
+# networks:
+#   monitoring:

@@ -1,0 +1,22 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'flask_blog'
+    scrape_interval: 5s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['localhost:5000']   # 👈 Flask app running on host
+
+
+
+# #if application runs in container
+# global:
+#   scrape_interval: 15s 
+
+# scrape_configs:
+#   - job_name: 'flask_blog'
+#     scrape_interval: 5s
+#     metrics_path: '/metrics'
+#     static_configs:
+#       - targets: ['flask-app:5000'] # Use container name directly
