@@ -1,0 +1,66 @@
+# Promtail is agent installed on application server, will collect logs and send them to Loki
+
+
+#This section defines how Promtail itself is exposed and how it communicates with Loki.
+server:
+  http_listen_port: 9080 #Promtail exposes HTTP metrics and health checks on port 9080.
+  grpc_listen_port: 0
+
+#Promtail keeps track of the last processed log line using a position file to avoid reading -->
+#the same data repeatedly
+positions:
+  filename: /tmp/positions.yaml
+
+#Defines where Promtail sends logs.
+clients:
+  - url: http://localhost:3100/loki/api/v1/push
+  #- url: "http://loki:3100/loki/api/v1/push" #lokis push end point
+
+#Defines how Promtail discovers and scrapes logs
+scrape_configs:
+  - job_name: system
+    static_configs:
+      - targets:
+          - localhost #Target for log collection. In this case, localhost since logs are collected from the local file system.
+        labels: #metadata from logs
+          job: systemlog
+          __path__: /var/log/*.log  #Path to the log files being scraped. Wildcards (*) are allowed.
+  
+    # pipeline_stages:
+    #   - json:
+    #       expressions:
+    #         level: level
+    #         message: msg
+    #         time: ts
+    #   - regex:
+    #       expression: ".*"
+    #   - output:
+    #       source: message
+
+  - job_name: flask-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: flask-logs
+          app: flask-app
+          __path__: /var/log/flask.log   # working
+          filename: /var/log/flask.log
+          #__path__: /home/hp/work/python-flask/flask_blog-site/flask.log
+
+    # pipeline_stages:
+    # - json:
+    #     expressions:
+    #       level: level
+    #       message: msg
+    # - labels:
+    #     level:
+
+
+
+
+#  How It Works:
+# Promtail scrapes logs from /var/log/*.log on the host.
+# It keeps track of the last read position in /tmp/positions.yaml.
+# The logs are sent to Loki (http://localhost:3100/loki/api/v1/push).
+# Grafana can then query Loki to visualize the logs.
