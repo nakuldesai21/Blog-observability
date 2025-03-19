@@ -1,34 +1,35 @@
-version: '3.8'
-services:
-  # Prometheus
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
-    restart: unless-stopped
-    network_mode: "host"   # 👈 Use host network to allow access to Flask running on the host
+#<<<<<<<<<<<<<<<<start>>>>>>>>>>>>>>>>
+# version: '3.8'
+# services:
+#   # Prometheus
+#   prometheus:
+#     image: prom/prometheus:latest
+#     container_name: prometheus
+#     ports:
+#       - "9090:9090"
+#     volumes:
+#       - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+#     restart: unless-stopped
+#     network_mode: "host"   # 👈 Use host network to allow access to Flask running on the host
 
-   # Grafana
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    volumes:
-      - "./grafana:/var/lib/grafana"
-    user: "472" # Grafana user ID
-    command: >
-      sh -c "
-      mkdir -p /var/lib/grafana &&
-      chown -R 472:472 /var/lib/grafana &&
-      chmod -R 775 /var/lib/grafana &&
-      /run.sh"
-    restart: unless-stopped
-    network_mode: "host"
-
+#    # Grafana
+#   grafana:
+#     image: grafana/grafana:latest
+#     container_name: grafana
+#     ports:
+#       - "3000:3000"
+#     volumes:
+#       - "./grafana:/var/lib/grafana"
+#     user: "472" # Grafana user ID
+#     command: >
+#       sh -c "
+#       mkdir -p /var/lib/grafana &&
+#       chown -R 472:472 /var/lib/grafana &&
+#       chmod -R 775 /var/lib/grafana &&
+#       /run.sh"
+#     restart: unless-stopped
+#     network_mode: "host"
+#<<<<<<<<<<<<<<end>>>>>>>>>>>>>>>
 
 # #if application is running in container
 # version: '3.8'
@@ -59,3 +60,87 @@ services:
 
 # networks:
 #   monitoring:
+
+
+
+
+version: '3.8'
+services:
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+    restart: unless-stopped
+    network_mode: "host"
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - "./grafana:/var/lib/grafana"
+    user: "472"
+    command: >
+      sh -c "
+      mkdir -p /var/lib/grafana &&
+      chown -R 472:472 /var/lib/grafana &&
+      chmod -R 775 /var/lib/grafana &&
+      /run.sh"
+    restart: unless-stopped
+    network_mode: "host"
+
+  # Loki
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      #- "/var/loki:/var/loki"
+      #- "./loki-config.yml:/etc/loki/local-config.yaml"
+       - ./loki-config.yml:/etc/loki/config.yaml
+       - /var/loki:/var/loki
+    user: root #"10001"
+    # command: >
+    #   sh -c "
+    #   mkdir -p /var/loki &&
+    #   chown -R 10001:10001 /var/loki &&
+    #   chmod -R 775 /var/loki &&
+    #   /usr/bin/loki -config.file=/etc/loki/local-config.yaml"
+    command: -config.file=/etc/loki/config.yaml
+    restart: unless-stopped
+    network_mode: "host"
+
+
+  # Promtail working as agent
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - /home/hp/work/python-flask/flask_blog-site/flask.log:/var/log/flask.log
+      - ./promtail-config.yml:/etc/promtail/config.yml
+      - /var/log:/var/log
+    command: -config.file=/etc/promtail/config.yml
+    restart: unless-stopped
+    network_mode: "host"
+
+
+  # promtail:
+  #   image: grafana/promtail:latest
+  #   container_name: promtail
+  #   volumes:
+  #     - /home/hp/work/python-flask/flask_blog-site:/var/log/flask   # ✅ Flask logs
+  #     - ./promtail-config.yml:/etc/promtail/config.yml
+  #   command: -config.file=/etc/promtail/config.yml
+  #   restart: unless-stopped
+  #   network_mode: "host"
+
+
+
+
